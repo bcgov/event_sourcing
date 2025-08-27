@@ -1,0 +1,12 @@
+id,snapshot_date,type,colour,size,featured
+2.0,2024-07-31,shorts,sage,0.0,Y
+3.0,2024-07-31,jeans,green,12.0,N
+111.0,2024-07-31,blouse,pink,6.0,N
+5.0,2024-07-31,pants,purple,2.0,Y
+,2024-07-31,socks,gray,,
+6.0,2024-07-31,shirt,blue,8.0,Y
+,2024-07-31,hat,orange,,
+,2024-07-31,scarf,beige,,
+111.0,2024-07-31,sweater,striped,10.0,N
+1.0,2024-07-31,jacket,blue,4.0,Y
+111.0,2024-07-31,gloves,gray,,N
