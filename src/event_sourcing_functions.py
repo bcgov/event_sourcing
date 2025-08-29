@@ -398,74 +398,23 @@ def incorrect_key_handler(new, key, duplicate_set = None, old = None):
     return {'new': new, 'old': old, 'new_duplicate_set': duplicate_set}
 
 def col_reorder(df, first_cols, last_cols):
+
+    """Reorders columns. Columns that are not included in the argument 
+    are left as is int he middle of the dataframe.
+    Parameters
+    ----------
+    df : dataframe
+    first_cols : list
+        List of columns that should appear at the beginning
+    last_cols : list
+        List of columns that should appear at the end
+    """
     all_cols = df.columns
     col_order = set(all_cols)
     middle_cols = list(col_order - set(last_cols) - set(first_cols))
     middle_cols.sort()
     col_order = first_cols + middle_cols + last_cols
     return col_order
-
-def format_case(s, case = 'skip', ignore_list = []):
-    if len(s.dropna()) != 0:
-        output = (
-            s[s.notna()] # I am applying this function to non NaN values only. If you do not, they get converted from NaN to nan and are more annoying to work with.
-            .astype(str) # Convert to string
-            .str.strip() # Strip white spaces (this dataset suffers from extra tabs, lines, etc.)
-            )
-        
-        if case == 'title':
-            return output.str.title()
-        elif case == 'upper':
-            return output.str.upper()
-        elif case == 'lower':
-            return output.str.lower()
-        elif case == 'skip':
-            pass
-
-def format_numbers(s):
-    if len(s.dropna()) != 0:
-        output = pd.to_numeric(
-            s[s.notna()] # I am applying this function to non NaN values only. If you do not, they get converted from NaN to nan and are more annoying to work with.
-            .astype(str) # Convert to string
-            .str.replace(',', '') # Strip white spaces (this dataset suffers from extra tabs, lines, etc.)
-            )
-        return output
-
-def preprocess_raw_file(file_path, delimiter, file_dtype_dict=None, nrows='all', dropped_columns=None, dtype_numeric_list=None, dtype_date_list=None, text_modif_dict=None):
-
-    if nrows == 'all':
-        df = pd.read_csv(
-        file_path, 
-        delimiter=delimiter,
-        na_values=['NIL', 'Unknown', 'unknown', 'UNKNOWN'], dtype=file_dtype_dict)
-
-    else:
-        df = pd.read_csv(
-            file_path, 
-            delimiter=delimiter,
-            nrows=nrows, na_values=['NIL', 'Unknown', 'unknown', 'UNKNOWN'], dtype=file_dtype_dict)
-
-        
-    df.columns = df.columns.str.lower()
-    df.drop(columns=dropped_columns, inplace=True)
-    
-    numeric_cols = list(set(dtype_numeric_list).intersection(set(df.columns)))
-
-    numeric_cols_w_strings = df[numeric_cols].select_dtypes('object').columns
-    for col in numeric_cols_w_strings:
-        df[col] = format_numbers(df[col])
-
-    date_cols = list(set(dtype_date_list).intersection(set(df.columns)))
-    for col in date_cols:
-        df[col] = pd.to_datetime(df[col], yearfirst=True, utc=True).dt.date
-
-    for key in text_modif_dict:
-        col_subset = list(set(text_modif_dict[key]).intersection(df.columns))
-        if len(col_subset) != 0:
-            for col in col_subset:
-                df[col] = format_case(df[col], case=key)
-
-    return df
 
 def track_changes(new, key, date_col, duplicate_set = None, old = None):
 
@@ -558,6 +507,70 @@ def track_changes(new, key, date_col, duplicate_set = None, old = None):
 
 
     return {'changes_df': changes_df, 'new_duplicate_set': new_duplicate_set}
+
+# Helper functions for formatting data
+
+def format_case(s, case = 'skip', ignore_list = []):
+    if len(s.dropna()) != 0:
+        output = (
+            s[s.notna()] # I am applying this function to non NaN values only. If you do not, they get converted from NaN to nan and are more annoying to work with.
+            .astype(str) # Convert to string
+            .str.strip() # Strip white spaces (this dataset suffers from extra tabs, lines, etc.)
+            )
+        
+        if case == 'title':
+            return output.str.title()
+        elif case == 'upper':
+            return output.str.upper()
+        elif case == 'lower':
+            return output.str.lower()
+        elif case == 'skip':
+            pass
+
+def format_numbers(s):
+    if len(s.dropna()) != 0:
+        output = pd.to_numeric(
+            s[s.notna()] # I am applying this function to non NaN values only. If you do not, they get converted from NaN to nan and are more annoying to work with.
+            .astype(str) # Convert to string
+            .str.replace(',', '') # Strip white spaces (this dataset suffers from extra tabs, lines, etc.)
+            )
+        return output
+
+def preprocess_raw_file(file_path, delimiter, file_dtype_dict=None, nrows='all', dropped_columns=None, dtype_numeric_list=None, dtype_date_list=None, text_modif_dict=None):
+
+    if nrows == 'all':
+        df = pd.read_csv(
+        file_path, 
+        delimiter=delimiter,
+        na_values=['NIL', 'Unknown', 'unknown', 'UNKNOWN'], dtype=file_dtype_dict)
+
+    else:
+        df = pd.read_csv(
+            file_path, 
+            delimiter=delimiter,
+            nrows=nrows, na_values=['NIL', 'Unknown', 'unknown', 'UNKNOWN'], dtype=file_dtype_dict)
+
+        
+    df.columns = df.columns.str.lower()
+    df.drop(columns=dropped_columns, inplace=True)
+    
+    numeric_cols = list(set(dtype_numeric_list).intersection(set(df.columns)))
+
+    numeric_cols_w_strings = df[numeric_cols].select_dtypes('object').columns
+    for col in numeric_cols_w_strings:
+        df[col] = format_numbers(df[col])
+
+    date_cols = list(set(dtype_date_list).intersection(set(df.columns)))
+    for col in date_cols:
+        df[col] = pd.to_datetime(df[col], yearfirst=True, utc=True).dt.date
+
+    for key in text_modif_dict:
+        col_subset = list(set(text_modif_dict[key]).intersection(df.columns))
+        if len(col_subset) != 0:
+            for col in col_subset:
+                df[col] = format_case(df[col], case=key)
+
+    return df
 
 # Tests
 
